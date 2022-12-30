@@ -5,6 +5,9 @@ import com.pinterest.ktlint.core.LintError
 import com.pinterest.ktlint.core.ParseException
 import com.pinterest.ktlint.core.RuleSet
 import com.pinterest.ktlint.core.RuleSetProvider
+import com.pinterest.ktlint.core.api.DefaultEditorConfigProperties
+import com.pinterest.ktlint.core.api.EditorConfigOverride
+import com.pinterest.ktlint.core.api.UsesEditorConfigProperties
 import net.swiftzer.semver.SemVer
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream
 import org.gradle.api.GradleException
@@ -38,7 +41,7 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
             .orNull
             ?.asFile
             ?.absolutePath
-        val userData = generateUserData()
+        val editorConfigOverride = generateEditorConfigOverride()
         val debug = parameters.debug.get()
         val formatSource = parameters.formatSource.getOrElse(false)
 
@@ -46,21 +49,25 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
 
         val result = mutableListOf<LintErrorResult>()
         val formattedFiles = mutableMapOf<File, ByteArray>()
+        val errors = mutableListOf<Pair<LintError, Boolean>>()
 
-        parameters.filesToLint.files.forEach {
-            val errors = mutableListOf<Pair<LintError, Boolean>>()
-            val ktLintParameters = KtLint.Params(
-                fileName = it.absolutePath,
-                text = it.readText(),
+        fun File.generateKtLintParameters() =
+            KtLint.ExperimentalParams(
+                fileName = absolutePath,
+                text = readText(),
                 ruleSets = ruleSets,
-                userData = userData,
                 debug = debug,
                 editorConfigPath = additionalEditorConfig,
-                script = !it.name.endsWith(".kt", ignoreCase = true),
+                editorConfigOverride = editorConfigOverride,
+                script = !name.endsWith(".kt", ignoreCase = true),
                 cb = { lintError, isCorrected ->
                     errors.add(lintError to isCorrected)
                 }
             )
+
+        parameters.filesToLint.files.forEach {
+            errors.clear()
+            val ktLintParameters = it.generateKtLintParameters()
 
             try {
                 if (formatSource) {
@@ -103,6 +110,27 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
                 .also { if (!it.exists()) it.createNewFile() }
             val snapshot = FormatTaskSnapshot(formattedFiles)
             FormatTaskSnapshot.writeIntoFile(snapshotFile, snapshot)
+        }
+    }
+
+    private fun generateEditorConfigOverride(): EditorConfigOverride {
+        val editorConfigOverrides = mutableListOf<Pair<UsesEditorConfigProperties.EditorConfigProperty<*>, *>>()
+
+        if (parameters.android.get()) {
+            editorConfigOverrides +=
+                DefaultEditorConfigProperties.codeStyleSetProperty to DefaultEditorConfigProperties.CodeStyleValue.android.name
+        }
+
+        val disabledRules = parameters.disabledRules.get()
+        if (disabledRules.isNotEmpty()) {
+            editorConfigOverrides +=
+                DefaultEditorConfigProperties.disabledRulesProperty to disabledRules.joinToString(separator = ",")
+        }
+
+        return if (editorConfigOverrides.isNotEmpty()) {
+            EditorConfigOverride.from(*editorConfigOverrides.toTypedArray())
+        } else {
+            EditorConfigOverride.emptyEditorConfigOverride
         }
     }
 
