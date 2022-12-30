@@ -55,6 +55,7 @@ class DisabledRulesTest : AbstractPluginTest() {
                 "src/main/kotlin/clean-source.kt",
                 """
                 fun some() {
+                    print("Wait a minute!")
     
     
                     print("Woohoo!")
@@ -79,6 +80,7 @@ class DisabledRulesTest : AbstractPluginTest() {
                 """
                 /* ktlint-disable no-consecutive-blank-lines */
                 fun some() {
+                    print("Wait a minute!")
     
     
                     print("Woohoo!")
