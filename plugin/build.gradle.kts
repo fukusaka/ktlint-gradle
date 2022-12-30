@@ -41,7 +41,7 @@ tasks.withType<PluginUnderTestMetadata>().configureEach {
  * metadata files.
  */
 val shadowImplementation by configurations.creating
-configurations["compileOnly"].extendsFrom(shadowImplementation)
+configurations["compileOnly"].extendsFrom(shadowImplementation).apply { isCanBeResolved = true }
 configurations["testImplementation"].extendsFrom(shadowImplementation)
 
 dependencies {
