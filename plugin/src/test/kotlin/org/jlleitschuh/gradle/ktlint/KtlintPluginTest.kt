@@ -8,7 +8,6 @@ import org.jlleitschuh.gradle.ktlint.tasks.GenerateReportsTask
 import org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask
 import org.jlleitschuh.gradle.ktlint.testdsl.CommonTest
 import org.jlleitschuh.gradle.ktlint.testdsl.GradleTestVersions
-import org.jlleitschuh.gradle.ktlint.testdsl.TestProject.Companion.FAIL_SOURCE_FILE
 import org.jlleitschuh.gradle.ktlint.testdsl.build
 import org.jlleitschuh.gradle.ktlint.testdsl.buildAndFail
 import org.jlleitschuh.gradle.ktlint.testdsl.project
@@ -133,7 +132,7 @@ class KtlintPluginTest : AbstractPluginTest() {
             buildGradle.appendText(
                 """
 
-                ktlint.filter { exclude("**/fail-source.kt") }
+                ktlint.filter { exclude("**/$FAIL_SOURCE_FILE") }
                 """.trimIndent()
             )
 
@@ -182,7 +181,7 @@ class KtlintPluginTest : AbstractPluginTest() {
 
             build(FORMAT_PARENT_TASK_NAME) {
                 assertThat(task(":$formatTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-                assertThat(projectPath.resolve(FAIL_SOURCE_FILE)).exists()
+                assertThat(projectPath.resolve("src/main/kotlin/$FAIL_SOURCE_FILE")).exists()
             }
 
             build(CHECK_PARENT_TASK_NAME)
@@ -313,7 +312,7 @@ class KtlintPluginTest : AbstractPluginTest() {
 
             build(
                 ":$CHECK_PARENT_TASK_NAME",
-                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/clean-source.kt"
+                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/$CLEAN_SOURCE_FILE"
             ) {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
             }
@@ -330,7 +329,7 @@ class KtlintPluginTest : AbstractPluginTest() {
 
             build(
                 ":$CHECK_PARENT_TASK_NAME",
-                "-P$FILTER_INCLUDE_PROPERTY_NAME=src\\main\\kotlin\\clean-source.kt"
+                "-P$FILTER_INCLUDE_PROPERTY_NAME=src\\main\\kotlin\\$CLEAN_SOURCE_FILE"
             ) {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
             }
@@ -346,13 +345,13 @@ class KtlintPluginTest : AbstractPluginTest() {
             buildGradle.appendText(
                 """
 
-                ktlint.filter { exclude("**/fail-source.kt") }
+                ktlint.filter { exclude("**/$FAIL_SOURCE_FILE") }
                 """.trimIndent()
             )
 
             build(
                 ":$CHECK_PARENT_TASK_NAME",
-                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/fail-source.kt"
+                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/$FAIL_SOURCE_FILE"
             ) {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SKIPPED)
             }
@@ -367,7 +366,7 @@ class KtlintPluginTest : AbstractPluginTest() {
 
             build(
                 ":$CHECK_PARENT_TASK_NAME",
-                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/failing-sources.kt"
+                "-P$FILTER_INCLUDE_PROPERTY_NAME=src/main/kotlin/$FAIL_SOURCE_FILE"
             ) {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SKIPPED)
             }
@@ -412,7 +411,7 @@ class KtlintPluginTest : AbstractPluginTest() {
     @CommonTest
     fun checkIsIncremental(gradleVersion: GradleVersion) {
         project(gradleVersion) {
-            val initialSourceFile = "src/main/kotlin/initial.kt"
+            val initialSourceFile = "src/main/kotlin/initial.kt".toPascalCaseFilename()
             createSourceFile(
                 initialSourceFile,
                 """
@@ -425,7 +424,7 @@ class KtlintPluginTest : AbstractPluginTest() {
                 assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
             }
 
-            val additionalSourceFile = "src/main/kotlin/another-file.kt"
+            val additionalSourceFile = "src/main/kotlin/another-file.kt".toPascalCaseFilename()
             createSourceFile(
                 additionalSourceFile,
                 """
@@ -474,13 +473,13 @@ class KtlintPluginTest : AbstractPluginTest() {
 
                 """.trimIndent()
 
-            val initialSourceFile = "src/main/kotlin/initial.kt"
+            val initialSourceFile = "src/main/kotlin/initial.kt".toPascalCaseFilename()
             createSourceFile(initialSourceFile, passingContents)
 
-            val additionalSourceFile = "src/main/kotlin/another-file.kt"
+            val additionalSourceFile = "src/main/kotlin/another-file.kt".toPascalCaseFilename()
             createSourceFile(additionalSourceFile, passingContents)
 
-            val testSourceFile = "src/test/kotlin/another-file.kt"
+            val testSourceFile = "src/test/kotlin/another-file.kt".toPascalCaseFilename()
             createSourceFile(testSourceFile, failingContents)
 
             build(mainSourceSetCheckTaskName) {
@@ -632,7 +631,7 @@ class KtlintPluginTest : AbstractPluginTest() {
                 val  foo    =    "bar"
             """
             )
-            val destinationFile = projectPath.resolve("src/main/kotlin/renamed-file.kt")
+            val destinationFile = projectPath.resolve("src/main/kotlin/renamed-file.kt".toPascalCaseFilename())
             sourceFile.renameTo(destinationFile)
 
             build(FORMAT_PARENT_TASK_NAME) {

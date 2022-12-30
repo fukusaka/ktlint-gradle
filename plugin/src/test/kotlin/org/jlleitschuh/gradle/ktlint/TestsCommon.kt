@@ -52,3 +52,12 @@ internal fun File.initGitWithoutHooksDir(): File {
     assert(repo.directory.resolve("hooks").delete())
     return repo.directory
 }
+
+private val snakeCaseFilenameRegex = "(?=[a-zA-Z-.]+\\Z)(?:\\A|(?<=/)|[_-])([a-zA-Z])".toRegex()
+
+internal val CLEAN_SOURCE_FILE = "clean-source.kt".toPascalCaseFilename()
+internal val FAIL_SOURCE_FILE = "fail-source.kt".toPascalCaseFilename()
+internal val KOTLIN_SCRIPT_FILE = "kotlin-script.kts".toPascalCaseFilename()
+internal val KOTLIN_SCRIPT_FAIL_FILE = "kotlin-script-fail.kts".toPascalCaseFilename()
+
+internal fun String.toPascalCaseFilename(): String = replace(snakeCaseFilenameRegex) { it.groups[1]?.value?.toUpperCase() ?: "" }

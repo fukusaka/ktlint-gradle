@@ -20,7 +20,7 @@ class ConfigurationCacheTest : AbstractPluginTest() {
     internal fun configurationCacheForCheckTask(gradleVersion: GradleVersion) {
         project(gradleVersion) {
             createSourceFile(
-                "src/main/kotlin/clean-source.kt",
+                "src/main/kotlin/$CLEAN_SOURCE_FILE",
                 """
                 val foo = "bar"
 
@@ -51,7 +51,7 @@ class ConfigurationCacheTest : AbstractPluginTest() {
     fun configurationCacheForFormatTasks(gradleVersion: GradleVersion) {
         project(gradleVersion) {
             createSourceFile(
-                "src/main/kotlin/clean-source.kt",
+                "src/main/kotlin/$CLEAN_SOURCE_FILE",
                 """
                 val foo = "bar"
                 """.trimIndent()

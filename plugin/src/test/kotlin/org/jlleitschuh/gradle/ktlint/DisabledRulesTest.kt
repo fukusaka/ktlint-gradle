@@ -27,7 +27,7 @@ class DisabledRulesTest : AbstractPluginTest() {
             )
 
             createSourceFile(
-                "src/main/kotlin/clean-source.kt",
+                "src/main/kotlin/$CLEAN_SOURCE_FILE",
                 """
                 val foo = "bar"
                 """.trimIndent()
@@ -52,7 +52,7 @@ class DisabledRulesTest : AbstractPluginTest() {
             )
 
             createSourceFile(
-                "src/main/kotlin/clean-source.kt",
+                "src/main/kotlin/$CLEAN_SOURCE_FILE",
                 """
                 fun some() {
                     print("Wait a minute!")
@@ -76,7 +76,7 @@ class DisabledRulesTest : AbstractPluginTest() {
     fun lintRuleDisabledInTheCode(gradleVersion: GradleVersion) {
         project(gradleVersion) {
             createSourceFile(
-                "src/main/kotlin/clean-source.kt",
+                "src/main/kotlin/$CLEAN_SOURCE_FILE",
                 """
                 /* ktlint-disable no-consecutive-blank-lines */
                 fun some() {

@@ -4,6 +4,10 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
 import org.jlleitschuh.gradle.ktlint.AbstractPluginTest
+import org.jlleitschuh.gradle.ktlint.CLEAN_SOURCE_FILE
+import org.jlleitschuh.gradle.ktlint.FAIL_SOURCE_FILE
+import org.jlleitschuh.gradle.ktlint.KOTLIN_SCRIPT_FAIL_FILE
+import org.jlleitschuh.gradle.ktlint.KOTLIN_SCRIPT_FILE
 import java.io.File
 
 fun AbstractPluginTest.project(
@@ -40,7 +44,7 @@ class TestProject(
 
     fun withCleanSources() {
         createSourceFile(
-            CLEAN_SOURCES_FILE,
+            "src/main/kotlin/$CLEAN_SOURCE_FILE",
             """
             |val foo = "bar"
             |
@@ -50,7 +54,7 @@ class TestProject(
 
     fun withFailingSources() {
         createSourceFile(
-            FAIL_SOURCE_FILE,
+            "src/main/kotlin/$FAIL_SOURCE_FILE",
             """
             |val  foo    =     "bar"
             |
@@ -60,7 +64,7 @@ class TestProject(
 
     fun withCleanKotlinScript() {
         createSourceFile(
-            "kotlin-script.kts",
+            KOTLIN_SCRIPT_FILE,
             """
             |println("zzz")
             |
@@ -70,7 +74,7 @@ class TestProject(
 
     fun withFailingKotlinScript() {
         createSourceFile(
-            "kotlin-script-fail.kts",
+            KOTLIN_SCRIPT_FAIL_FILE,
             """
             |println("zzz")@
             |
@@ -89,7 +93,7 @@ class TestProject(
     }
 
     fun restoreFailingSources() {
-        val sourceFile = projectPath.resolve(FAIL_SOURCE_FILE)
+        val sourceFile = projectPath.resolve("src/main/kotlin/$FAIL_SOURCE_FILE")
         sourceFile.delete()
         withFailingSources()
     }
@@ -97,11 +101,6 @@ class TestProject(
     fun removeSourceFile(sourceFilePath: String) {
         val sourceFile = projectPath.resolve(sourceFilePath)
         sourceFile.delete()
-    }
-
-    companion object {
-        const val CLEAN_SOURCES_FILE = "src/main/kotlin/clean-source.kt"
-        const val FAIL_SOURCE_FILE = "src/main/kotlin/fail-source.kt"
     }
 }
 
