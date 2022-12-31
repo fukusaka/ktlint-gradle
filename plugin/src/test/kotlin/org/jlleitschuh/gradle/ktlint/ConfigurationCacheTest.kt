@@ -73,6 +73,16 @@ class ConfigurationCacheTest : AbstractPluginTest() {
                 FORMAT_PARENT_TASK_NAME
             ) {
                 assertThat(task(":$formatTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+                assertThat(task(":$mainSourceSetFormatTaskName")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
+                assertThat(output).contains("Reusing configuration cache.")
+            }
+
+            build(
+                configurationCacheFlag,
+                configurationCacheWarnFlag,
+                FORMAT_PARENT_TASK_NAME
+            ) {
+                assertThat(task(":$formatTaskName")?.outcome).isEqualTo(TaskOutcome.UP_TO_DATE)
                 assertThat(task(":$mainSourceSetFormatTaskName")?.outcome).isEqualTo(TaskOutcome.UP_TO_DATE)
                 assertThat(output).contains("Reusing configuration cache.")
             }
