@@ -28,12 +28,12 @@ class KtlintPluginVersionTest : AbstractPluginTest() {
         )
     }
 
-    @DisplayName("Should fail the build on using KtLint version <0.47.0")
+    @DisplayName("Should fail the build on using KtLint version <0.48.0")
     @CommonTest
     fun failOnUnsupportedOldKtLintVersion(gradleVersion: GradleVersion) {
         project(gradleVersion) {
             withCleanSources()
-            buildGradle.useKtlintVersion("0.46.1")
+            buildGradle.useKtlintVersion("0.47.1")
             buildAndFail(CHECK_PARENT_TASK_NAME) {
                 assertThat(task(":${LoadReportersTask.TASK_NAME}")?.outcome).isEqualTo(TaskOutcome.FAILED)
             }
