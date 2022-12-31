@@ -56,6 +56,7 @@ class KtlintBaselineSupportTest : AbstractPluginTest() {
                     |<baseline version="1.0">
                     |    <file name="kotlin-script-fail.kts">
                     |        <error line="1" column="15" source="no-trailing-spaces" />
+                    |        <error line="1" column="16" source="no-multi-spaces" />
                     |    </file>
                     |    <file name="src/main/kotlin/fail-source.kt">
                     |        <error line="1" column="5" source="no-multi-spaces" />
