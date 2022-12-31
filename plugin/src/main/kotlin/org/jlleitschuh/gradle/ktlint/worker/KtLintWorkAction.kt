@@ -1,6 +1,6 @@
 package org.jlleitschuh.gradle.ktlint.worker
 
-import com.pinterest.ktlint.core.KtLint
+import com.pinterest.ktlint.core.KtLintRuleEngine
 import com.pinterest.ktlint.core.LintError
 import com.pinterest.ktlint.core.RuleProvider
 import com.pinterest.ktlint.core.RuleSetProviderV2
@@ -42,46 +42,40 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
             .additionalEditorconfigFile
             .orNull
             ?.asFile
-            ?.absolutePath
+            ?.toPath()
         val editorConfigOverride = generateEditorConfigOverride()
         val debug = parameters.debug.get()
         val formatSource = parameters.formatSource.getOrElse(false)
 
-        resetEditorconfigCache()
-
         val result = mutableListOf<LintErrorResult>()
         val formattedFiles = mutableMapOf<File, ByteArray>()
-        val errors = mutableListOf<Pair<LintError, Boolean>>()
 
-        fun File.generateKtLintParameters() =
-            KtLint.ExperimentalParams(
-                fileName = absolutePath,
-                text = readText(),
-                debug = debug,
-                ruleProviders = ruleProviders,
-                editorConfigPath = additionalEditorConfig,
-                editorConfigOverride = editorConfigOverride,
-                script = !name.endsWith(".kt", ignoreCase = true),
-                cb = { lintError, isCorrected ->
-                    errors.add(lintError to isCorrected)
-                }
-            )
+        val ruleEngine = KtLintRuleEngine(
+            ruleProviders = ruleProviders,
+            editorConfigDefaults = EditorConfigDefaults.load(additionalEditorConfig),
+            editorConfigOverride = editorConfigOverride,
+        )
+
+        resetEditorconfigCache(ruleEngine)
 
         parameters.filesToLint.files.forEach {
-            errors.clear()
-            val ktLintParameters = it.generateKtLintParameters()
+            val errors = mutableListOf<Pair<LintError, Boolean>>()
 
             try {
                 if (formatSource) {
                     val currentFileContent = it.readText()
-                    val updatedFileContent = KtLint.format(ktLintParameters)
+                    val updatedFileContent = ruleEngine.format(it.toPath()) { lintError, isCorrected ->
+                        errors.add(lintError to isCorrected)
+                    }
 
                     if (updatedFileContent != currentFileContent) {
                         formattedFiles[it] = contentHash(it)
                         it.writeText(updatedFileContent)
                     }
                 } else {
-                    KtLint.lint(ktLintParameters)
+                    ruleEngine.lint(it.toPath()) { lintError ->
+                        errors.add(lintError to false)
+                    }
                 }
             } catch (e: RuntimeException) {
                 throw GradleException(
@@ -140,7 +134,7 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
         if (parameters.editorconfigFilesWereChanged.get()) {
             logger.info("Resetting KtLint caches")
             // Calling trimMemory() will also reset internal loaded `.editorconfig` cache
-            KtLint.trimMemory()
+            ruleEngine.trimMemory()
         }
     }
 
