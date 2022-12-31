@@ -2,9 +2,8 @@ package org.jlleitschuh.gradle.ktlint.worker
 
 import com.pinterest.ktlint.core.KtLint
 import com.pinterest.ktlint.core.LintError
-import com.pinterest.ktlint.core.ParseException
-import com.pinterest.ktlint.core.RuleSet
-import com.pinterest.ktlint.core.RuleSetProvider
+import com.pinterest.ktlint.core.RuleProvider
+import com.pinterest.ktlint.core.RuleSetProviderV2
 import com.pinterest.ktlint.core.api.DefaultEditorConfigProperties
 import com.pinterest.ktlint.core.api.EditorConfigOverride
 import com.pinterest.ktlint.core.api.UsesEditorConfigProperties
@@ -31,7 +30,7 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
     private val logger = Logging.getLogger("ktlint-worker")
 
     override fun execute() {
-        val ruleSets = loadRuleSetsAndFilterThem(
+        val ruleProviders = loadRuleProvidersAndFilterThem(
             parameters.enableExperimental.getOrElse(false),
             parameters.disabledRules.getOrElse(emptySet())
         )
@@ -55,8 +54,8 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
             KtLint.ExperimentalParams(
                 fileName = absolutePath,
                 text = readText(),
-                ruleSets = ruleSets,
                 debug = debug,
+                ruleProviders = ruleProviders,
                 editorConfigPath = additionalEditorConfig,
                 editorConfigOverride = editorConfigOverride,
                 script = !name.endsWith(".kt", ignoreCase = true),
@@ -81,7 +80,7 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
                 } else {
                     KtLint.lint(ktLintParameters)
                 }
-            } catch (e: ParseException) {
+            } catch (e: RuntimeException) {
                 throw GradleException(
                     "KtLint failed to parse file: ${it.absolutePath}",
                     e
@@ -124,7 +123,7 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
         val disabledRules = parameters.disabledRules.get()
         if (disabledRules.isNotEmpty()) {
             editorConfigOverrides +=
-                DefaultEditorConfigProperties.disabledRulesProperty to disabledRules.joinToString(separator = ",")
+                DefaultEditorConfigProperties.ktlintDisabledRulesProperty to disabledRules.joinToString(separator = ",")
         }
 
         return if (editorConfigOverrides.isNotEmpty()) {
@@ -142,21 +141,20 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
         }
     }
 
-    private fun loadRuleSetsAndFilterThem(
+    private fun loadRuleProvidersAndFilterThem(
         enableExperimental: Boolean,
         disabledRules: Set<String>
-    ): Set<RuleSet> = loadRuleSetsFromClasspath()
+    ): Set<RuleProvider> = loadRuleSetProviderFromClasspath()
         .filterKeys { enableExperimental || it != "experimental" }
         .filterKeys { !(disabledRules.contains("standard") && it == "\u0000standard") }
         .toSortedMap()
-        .mapValues { it.value.get() }
-        .values
+        .flatMap { it.value.getRuleProviders() }
         .toSet()
 
-    private fun loadRuleSetsFromClasspath(): Map<String, RuleSetProvider> = ServiceLoader
-        .load(RuleSetProvider::class.java)
+    private fun loadRuleSetProviderFromClasspath(): Map<String, RuleSetProviderV2> = ServiceLoader
+        .load(RuleSetProviderV2::class.java)
         .associateBy {
-            val key = it.get().id
+            val key = it.id
             // Adapted from KtLint CLI module
             if (key == "standard") "\u0000$key" else key
         }
