@@ -230,14 +230,14 @@ class KtlintPluginTest : AbstractPluginTest() {
             buildGradle.appendText(
                 """
 
-                ktlint.version = "0.35.0"
+                ktlint.version = "0.45.1"
                 """.trimIndent()
             )
 
             build(":dependencies") {
                 assertThat(output).contains(
                     "$KTLINT_CONFIGURATION_NAME - $KTLINT_CONFIGURATION_DESCRIPTION${System.lineSeparator()}" +
-                        "\\--- com.pinterest:ktlint:0.35.0${System.lineSeparator()}"
+                        "\\--- com.pinterest:ktlint:0.45.1${System.lineSeparator()}"
                 )
             }
         }
@@ -398,7 +398,7 @@ class KtlintPluginTest : AbstractPluginTest() {
                 """
 
                 ktlint.enableExperimentalRules = true
-                ktlint.version = "0.34.0"
+                ktlint.version = "0.45.1"
                 """.trimIndent()
             )
 

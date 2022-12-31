@@ -96,29 +96,6 @@ class KtlintBaselineSupportTest : AbstractPluginTest() {
         }
     }
 
-    @DisplayName("Generate baseline task should work only when KtLint version is higher then 0.41.0")
-    @CommonTest
-    fun generateBaselineMinVersion(gradleVersion: GradleVersion) {
-        project(gradleVersion) {
-            withFailingSources()
-
-            //language=Groovy
-            buildGradle.appendText(
-                """
-                
-                ktlint {
-                    version.set("0.40.0")
-                }
-                """.trimIndent()
-            )
-
-            build(GenerateBaselineTask.NAME) {
-                assertThat(task(":${GenerateBaselineTask.NAME}")?.outcome).isEqualTo(TaskOutcome.SKIPPED)
-                assertThat(output).containsSequence("Generate baseline only works starting from KtLint 0.41.0 version")
-            }
-        }
-    }
-
     @DisplayName("Should consider existing issues in baseline")
     @CommonTest
     fun existingIssueFilteredByBaseline(gradleVersion: GradleVersion) {
@@ -142,30 +119,6 @@ class KtlintBaselineSupportTest : AbstractPluginTest() {
             withFailingKotlinScript()
             buildAndFail(CHECK_PARENT_TASK_NAME) {
                 assertThat(task(":$kotlinScriptCheckTaskName")?.outcome).isEqualTo(TaskOutcome.FAILED)
-            }
-        }
-    }
-
-    @DisplayName("Should fail the build if baseline file is present and ktlint version is less then 0.41.0")
-    @CommonTest
-    fun failBuildOnOldKtlintVersionsAndBaselinePresent(gradleVersion: GradleVersion) {
-        project(gradleVersion) {
-            withCleanSources()
-            build(GenerateBaselineTask.NAME)
-
-            //language=Groovy
-            buildGradle.appendText(
-                """
-                
-                ktlint {
-                    version.set("0.40.0")
-                }
-                """.trimIndent()
-            )
-
-            buildAndFail(CHECK_PARENT_TASK_NAME) {
-                assertThat(task(":$mainSourceSetCheckTaskName")?.outcome).isEqualTo(TaskOutcome.FAILED)
-                assertThat(output).contains("Baseline support is only enabled for KtLint versions 0.41.0+.")
             }
         }
     }
