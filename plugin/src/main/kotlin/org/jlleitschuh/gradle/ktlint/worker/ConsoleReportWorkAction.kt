@@ -1,8 +1,8 @@
 package org.jlleitschuh.gradle.ktlint.worker
 
 import com.pinterest.ktlint.core.LintError
-import com.pinterest.ktlint.core.internal.containsLintError
-import com.pinterest.ktlint.core.internal.loadBaseline
+import com.pinterest.ktlint.core.api.containsLintError
+import com.pinterest.ktlint.core.api.loadBaseline
 import net.swiftzer.semver.SemVer
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -30,7 +30,7 @@ internal abstract class ConsoleReportWorkAction : WorkAction<ConsoleReportWorkAc
             )
 
         val baselineRules = parameters.baseline.orNull?.asFile?.absolutePath
-            ?.let { loadBaseline(it).baselineRules }
+            ?.let { loadBaseline(it).lintErrorsPerFile }
         val projectDir = parameters.projectDirectory.asFile.get()
 
         val lintErrors = errors.associate { lintErrorResult ->
