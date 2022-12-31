@@ -1,9 +1,16 @@
 package org.jlleitschuh.gradle.ktlint.sample.kotlin
 
-import com.pinterest.ktlint.core.RuleSet
-import com.pinterest.ktlint.core.RuleSetProvider
+import com.pinterest.ktlint.core.RuleProvider
+import com.pinterest.ktlint.core.RuleSetProviderV2
 
-class CustomRuleSetProvider : RuleSetProvider {
+class CustomRuleSetProvider : RuleSetProviderV2(CUSTOM_RULE_SET_ID, NO_ABOUT) {
 
-    override fun get(): RuleSet = RuleSet("custom", NoVarRule())
+    override fun getRuleProviders(): Set<RuleProvider> =
+        setOf(
+            RuleProvider { NoVarRule() }
+        )
+
+    companion object {
+        const val CUSTOM_RULE_SET_ID = "custom"
+    }
 }
