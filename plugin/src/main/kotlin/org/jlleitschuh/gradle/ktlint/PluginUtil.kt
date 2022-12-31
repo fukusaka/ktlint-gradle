@@ -125,9 +125,9 @@ internal fun Logger.logKtLintDebugMessage(
 }
 
 internal fun checkMinimalSupportedKtLintVersion(ktLintVersion: String) {
-    if (SemVer.parse(ktLintVersion) < SemVer(0, 46, 0)) {
+    if (SemVer.parse(ktLintVersion) < SemVer(0, 47, 0)) {
         throw GradleException(
-            "KtLint versions less than 0.46.0 are not supported. " +
+            "KtLint versions less than 0.47.0 are not supported. " +
                 "Detected KtLint version: $ktLintVersion."
         )
     }

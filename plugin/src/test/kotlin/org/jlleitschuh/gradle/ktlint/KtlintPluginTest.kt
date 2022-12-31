@@ -397,7 +397,7 @@ class KtlintPluginTest : AbstractPluginTest() {
                 """
 
                 ktlint.enableExperimentalRules = true
-                ktlint.version = "0.46.0"
+                ktlint.version = "0.47.0"
                 """.trimIndent()
             )
 
