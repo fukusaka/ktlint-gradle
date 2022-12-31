@@ -4,9 +4,12 @@ import com.pinterest.ktlint.core.KtLint
 import com.pinterest.ktlint.core.LintError
 import com.pinterest.ktlint.core.RuleProvider
 import com.pinterest.ktlint.core.RuleSetProviderV2
-import com.pinterest.ktlint.core.api.DefaultEditorConfigProperties
+import com.pinterest.ktlint.core.api.EditorConfigDefaults
 import com.pinterest.ktlint.core.api.EditorConfigOverride
-import com.pinterest.ktlint.core.api.UsesEditorConfigProperties
+import com.pinterest.ktlint.core.api.editorconfig.CODE_STYLE_PROPERTY
+import com.pinterest.ktlint.core.api.editorconfig.CodeStyleValue
+import com.pinterest.ktlint.core.api.editorconfig.DISABLED_RULES_PROPERTY
+import com.pinterest.ktlint.core.api.editorconfig.EditorConfigProperty
 import net.swiftzer.semver.SemVer
 import org.apache.commons.io.input.MessageDigestCalculatingInputStream
 import org.gradle.api.GradleException
@@ -113,27 +116,27 @@ abstract class KtLintWorkAction : WorkAction<KtLintWorkAction.KtLintWorkParamete
     }
 
     private fun generateEditorConfigOverride(): EditorConfigOverride {
-        val editorConfigOverrides = mutableListOf<Pair<UsesEditorConfigProperties.EditorConfigProperty<*>, *>>()
+        val editorConfigOverrides = mutableListOf<Pair<EditorConfigProperty<*>, *>>()
 
         if (parameters.android.get()) {
             editorConfigOverrides +=
-                DefaultEditorConfigProperties.codeStyleSetProperty to DefaultEditorConfigProperties.CodeStyleValue.android.name
+                CODE_STYLE_PROPERTY to CodeStyleValue.android.name
         }
 
         val disabledRules = parameters.disabledRules.get()
         if (disabledRules.isNotEmpty()) {
             editorConfigOverrides +=
-                DefaultEditorConfigProperties.ktlintDisabledRulesProperty to disabledRules.joinToString(separator = ",")
+                DISABLED_RULES_PROPERTY to disabledRules.joinToString(separator = ",")
         }
 
         return if (editorConfigOverrides.isNotEmpty()) {
             EditorConfigOverride.from(*editorConfigOverrides.toTypedArray())
         } else {
-            EditorConfigOverride.emptyEditorConfigOverride
+            EditorConfigOverride.EMPTY_EDITOR_CONFIG_OVERRIDE
         }
     }
 
-    private fun resetEditorconfigCache() {
+    private fun resetEditorconfigCache(ruleEngine: KtLintRuleEngine) {
         if (parameters.editorconfigFilesWereChanged.get()) {
             logger.info("Resetting KtLint caches")
             // Calling trimMemory() will also reset internal loaded `.editorconfig` cache
