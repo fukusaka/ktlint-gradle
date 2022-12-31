@@ -215,10 +215,6 @@ gradlePlugin {
             id = "org.jlleitschuh.gradle.ktlint"
             implementationClass = "org.jlleitschuh.gradle.ktlint.KtlintPlugin"
         }
-        register("ktlintIdeaPlugin") {
-            id = "org.jlleitschuh.gradle.ktlint-idea"
-            implementationClass = "org.jlleitschuh.gradle.ktlint.KtlintIdeaPlugin"
-        }
     }
 }
 
@@ -252,9 +248,6 @@ pluginBundle {
     (plugins) {
         "ktlintPlugin" {
             displayName = "Ktlint Gradle Plugin"
-        }
-        "ktlintIdeaPlugin" {
-            displayName = "Ktlint Gradle IntelliJ Configuration Plugin"
         }
     }
 }

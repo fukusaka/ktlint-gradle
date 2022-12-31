@@ -44,33 +44,6 @@ class KtlintPluginTest : AbstractPluginTest() {
         }
     }
 
-    @DisplayName("Should generate code style files in project")
-    @CommonTest
-    fun generateIdeaCodeStyle(gradleVersion: GradleVersion) {
-        project(gradleVersion) {
-            withCleanSources()
-            val ideaRootDir = projectPath.resolve(".idea").apply { mkdir() }
-
-            build(APPLY_TO_IDEA_TASK_NAME) {
-                assertThat(task(":$APPLY_TO_IDEA_TASK_NAME")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-                assertThat(ideaRootDir.listFiles()?.isNullOrEmpty()).isFalse()
-            }
-        }
-    }
-
-    @DisplayName("Should generate code style file globally")
-    @CommonTest
-    fun generateIdeaCodeStyleGlobally(gradleVersion: GradleVersion) {
-        project(gradleVersion) {
-            val ideaRootDir = projectPath.resolve(".idea").apply { mkdir() }
-
-            build(APPLY_TO_IDEA_GLOBALLY_TASK_NAME) {
-                assertThat(task(":$APPLY_TO_IDEA_GLOBALLY_TASK_NAME")?.outcome).isEqualTo(TaskOutcome.SUCCESS)
-                assertThat(ideaRootDir.listFiles()?.isNullOrEmpty()).isFalse()
-            }
-        }
-    }
-
     @DisplayName("Should show only plugin meta tasks in task output")
     @CommonTest
     fun showOnlyMetaTasks(gradleVersion: GradleVersion) {
@@ -83,11 +56,9 @@ class KtlintPluginTest : AbstractPluginTest() {
                     .filter { it.startsWith("ktlint", ignoreCase = true) }
                     .toList()
 
-                assertThat(ktlintTasks).hasSize(5)
+                assertThat(ktlintTasks).hasSize(3)
                 assertThat(ktlintTasks).anyMatch { it.startsWith(CHECK_PARENT_TASK_NAME) }
                 assertThat(ktlintTasks).anyMatch { it.startsWith(FORMAT_PARENT_TASK_NAME) }
-                assertThat(ktlintTasks).anyMatch { it.startsWith(APPLY_TO_IDEA_TASK_NAME) }
-                assertThat(ktlintTasks).anyMatch { it.startsWith(APPLY_TO_IDEA_GLOBALLY_TASK_NAME) }
                 assertThat(ktlintTasks).anyMatch { it.startsWith(GenerateBaselineTask.NAME) }
             }
         }
@@ -105,11 +76,9 @@ class KtlintPluginTest : AbstractPluginTest() {
 
                 // Plus for main and test sources format and check tasks
                 // Plus two kotlin script tasks
-                assertThat(ktlintTasks).hasSize(11)
+                assertThat(ktlintTasks).hasSize(9)
                 assertThat(ktlintTasks).anyMatch { it.startsWith(CHECK_PARENT_TASK_NAME) }
                 assertThat(ktlintTasks).anyMatch { it.startsWith(FORMAT_PARENT_TASK_NAME) }
-                assertThat(ktlintTasks).anyMatch { it.startsWith(APPLY_TO_IDEA_TASK_NAME) }
-                assertThat(ktlintTasks).anyMatch { it.startsWith(APPLY_TO_IDEA_GLOBALLY_TASK_NAME) }
                 assertThat(ktlintTasks).anyMatch { it.startsWith(kotlinScriptCheckTaskName) }
                 assertThat(ktlintTasks).anyMatch {
                     it.startsWith(
